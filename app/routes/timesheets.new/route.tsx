@@ -3,18 +3,26 @@ import { getDB } from "~/db/getDB";
 import type { ActionFunction } from "react-router";
 
 // Loader that fetches employees so we can pick one in a <select> input
-
 export async function loader() {
   const db = await getDB();
   const employees = await db.all("SELECT id, full_name FROM employees");
   return { employees };
 }
 
+// Helper function to ensure date-time strings include seconds
+function fixDateTime(input: string | FormDataEntryValue | null): string {
+  if (!input || typeof input !== "string") return "";
+  // If the input already includes seconds (i.e. has two colons), return as is.
+  if (input.split(":").length >= 3) return input;
+  // Otherwise, assume it's in "YYYY-MM-DDTHH:MM" format and append ":00"
+  return input + ":00";
+}
+
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const employee_id = formData.get("employee_id");
-  const start_time = formData.get("start_time");
-  const end_time = formData.get("end_time");
+  const start_time = fixDateTime(formData.get("start_time"));
+  const end_time = fixDateTime(formData.get("end_time"));
 
   const db = await getDB();
   await db.run(

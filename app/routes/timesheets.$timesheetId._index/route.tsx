@@ -7,7 +7,7 @@ import {
 } from "react-router";
 import { getDB } from "~/db/getDB";
 
-// loader function to fetch timesheet and employees data
+// Loader that fetches timesheet and employees data
 export async function loader({ params }: LoaderFunctionArgs) {
   const { timesheetId } = params;
   const db = await getDB();
@@ -28,12 +28,19 @@ export async function loader({ params }: LoaderFunctionArgs) {
   return { timesheet, employees };
 }
 
+// Helper function to ensure date-time strings include seconds
+function fixDateTime(input: string | FormDataEntryValue | null): string {
+  if (!input || typeof input !== "string") return "";
+  if (input.split(":").length >= 3) return input;
+  return input + ":00";
+}
+
 export async function action({ request, params }: ActionFunctionArgs) {
   const { timesheetId } = params;
   const formData = await request.formData();
   const employee_id = formData.get("employee_id");
-  const start_time = formData.get("start_time");
-  const end_time = formData.get("end_time");
+  const start_time = fixDateTime(formData.get("start_time"));
+  const end_time = fixDateTime(formData.get("end_time"));
 
   // dates validation
   if (!start_time || !end_time) {
