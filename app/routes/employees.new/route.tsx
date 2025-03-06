@@ -14,6 +14,7 @@ export const action: ActionFunction = async ({ request }) => {
     const start_date = formData.get("start_date");
     const end_date = formData.get("end_date");
 
+    // Insert into db
     const db = await getDB();
     await db.run(
       `
@@ -42,6 +43,7 @@ export const action: ActionFunction = async ({ request }) => {
       ]
     );
 
+    // Redirect to the list of employees
     return redirect("/employees");
   } catch (error) {
     console.error("Error inserting new employee:", error);
@@ -92,7 +94,7 @@ export default function NewEmployeePage() {
               name="phone"
               type="text"
               pattern="^\d{10,}$"
-              title="number must have at least 10 digits."
+              title="number must have at least 10 digits and no special characters."
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

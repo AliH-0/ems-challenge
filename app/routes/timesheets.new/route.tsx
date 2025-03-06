@@ -2,9 +2,8 @@ import { useLoaderData, Form, redirect } from "react-router";
 import { getDB } from "~/db/getDB";
 import type { ActionFunction } from "react-router";
 
-/**
- * Loader that fetches employees so we can pick one in a <select> input
- */
+// Loader that fetches employees so we can pick one in a <select> input
+
 export async function loader() {
   const db = await getDB();
   const employees = await db.all("SELECT id, full_name FROM employees");

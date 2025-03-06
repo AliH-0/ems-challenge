@@ -4,6 +4,7 @@ import { getDB } from "~/db/getDB";
 
 export async function loader() {
   const db = await getDB();
+  // merges timesheets with employees to show employee name
   const timesheetsAndEmployees = await db.all(`
     SELECT timesheets.*,
            employees.full_name,
@@ -15,6 +16,7 @@ export async function loader() {
 }
 
 export default function TimesheetsPage() {
+  // Get the timesheets and employees from the loader
   const { timesheetsAndEmployees } = useLoaderData() as {
     timesheetsAndEmployees: any[];
   };
@@ -33,6 +35,7 @@ export default function TimesheetsPage() {
         >
           Table View
         </button>
+
         <button
           onClick={() => setView("calendar")}
           className={`px-4 py-2 rounded text-white ${

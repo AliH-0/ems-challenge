@@ -8,8 +8,10 @@ import {
 import { getDB } from "~/db/getDB";
 
 export async function loader({ params }: LoaderFunctionArgs) {
+  // Fetch a single employee by ID
   const { employeeId } = params;
   const db = await getDB();
+  // Fetch employees
   const employee = await db.get(
     "SELECT * FROM employees WHERE id = ?",
     employeeId
@@ -61,7 +63,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       employeeId,
     ]
   );
-  return redirect(`/employees/${employeeId}`);
+  return redirect(`/employees/`);
 }
 
 export default function EmployeePage() {
@@ -99,6 +101,8 @@ export default function EmployeePage() {
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               type="text"
               name="phone"
+              pattern="^\d{10,}$"
+              title="number must have at least 10 digits and no special characters."
               defaultValue={employee.phone}
             />
           </div>

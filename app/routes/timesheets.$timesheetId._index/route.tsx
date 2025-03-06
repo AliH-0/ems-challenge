@@ -7,6 +7,7 @@ import {
 } from "react-router";
 import { getDB } from "~/db/getDB";
 
+// loader function to fetch timesheet and employees data
 export async function loader({ params }: LoaderFunctionArgs) {
   const { timesheetId } = params;
   const db = await getDB();
@@ -34,6 +35,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const start_time = formData.get("start_time");
   const end_time = formData.get("end_time");
 
+  // dates validation
   if (!start_time || !end_time) {
     throw new Error("Start/End time required");
   }
