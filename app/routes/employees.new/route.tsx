@@ -1,6 +1,9 @@
 import { Form, redirect, type ActionFunction } from "react-router";
 import { getDB } from "~/db/getDB";
+import fs from "fs";
+import path from "path";
 
+// Action function to handle file upload and employee creation
 export const action: ActionFunction = async ({ request }) => {
   try {
     const formData = await request.formData();
@@ -13,8 +16,52 @@ export const action: ActionFunction = async ({ request }) => {
     const salary = formData.get("salary");
     const start_date = formData.get("start_date");
     const end_date = formData.get("end_date");
+    const photoFile = formData.get("photo");
 
-    // Insert into db
+    // Compliance Validations
+
+    // 1. Check if the employee is over 18 years old
+    if (dob) {
+      const birthDate = new Date(dob as string);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+      if (age < 18) {
+        throw new Error("Employee must be at least 18 years old.");
+      }
+    }
+
+    // 2. Check if the salary is above the minimum wage
+    const MINIMUM_WAGE = 100;
+    const parsedSalary = parseFloat(salary as string);
+    if (isNaN(parsedSalary) || parsedSalary < MINIMUM_WAGE) {
+      throw new Error("Employee salary must be above the minimum wage.");
+    }
+
+    let photoPath = null;
+    if (photoFile && photoFile instanceof File) {
+      // Generate a unique filename
+      const filename = `${Date.now()}-${photoFile.name}`;
+      // Define the upload folder path; ensure an "uploads" folder exists at the root
+      const uploadFolder = path.join(process.cwd(), "uploads");
+      // Create the folder if it doesn't exist
+      if (!fs.existsSync(uploadFolder)) {
+        fs.mkdirSync(uploadFolder);
+      }
+      const filePath = path.join(uploadFolder, filename);
+      // Save the file to disk
+      const buffer = Buffer.from(await photoFile.arrayBuffer());
+      fs.writeFileSync(filePath, buffer);
+      // Store the relative path in the database
+      photoPath = `/uploads/${filename}`;
+    }
+
     const db = await getDB();
     await db.run(
       `
@@ -27,8 +74,9 @@ export const action: ActionFunction = async ({ request }) => {
           department,
           salary,
           start_date,
-          end_date
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          end_date,
+          photo
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         full_name,
@@ -40,10 +88,10 @@ export const action: ActionFunction = async ({ request }) => {
         salary,
         start_date,
         end_date,
+        photoPath,
       ]
     );
 
-    // Redirect to the list of employees
     return redirect("/employees");
   } catch (error) {
     console.error("Error inserting new employee:", error);
@@ -58,7 +106,7 @@ export default function NewEmployeePage() {
         Create New Employee
       </h1>
       <div className="max-w-xl mx-auto border border-gray-300 rounded p-6 shadow-sm space-y-4">
-        <Form method="post" className="space-y-4">
+        <Form method="post" encType="multipart/form-data" className="space-y-4">
           <div>
             <label htmlFor="full_name" className="block font-semibold mb-1">
               Full Name
@@ -167,6 +215,20 @@ export default function NewEmployeePage() {
               id="end_date"
               name="end_date"
               type="date"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* New file input for employee photo */}
+          <div>
+            <label htmlFor="photo" className="block font-semibold mb-1">
+              Employee Photo
+            </label>
+            <input
+              id="photo"
+              name="photo"
+              type="file"
+              accept="image/*"
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

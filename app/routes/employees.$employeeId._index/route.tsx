@@ -11,7 +11,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
   // Fetch a single employee by ID
   const { employeeId } = params;
   const db = await getDB();
-  // Fetch employees
   const employee = await db.get(
     "SELECT * FROM employees WHERE id = ?",
     employeeId
@@ -34,6 +33,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const salary = formData.get("salary");
   const start_date = formData.get("start_date");
   const end_date = formData.get("end_date");
+  // Optionally handle photo update here if needed
   const db = await getDB();
   await db.run(
     `
@@ -76,6 +76,15 @@ export default function EmployeePage() {
       </h1>
       <div className="max-w-xl mx-auto border border-gray-300 rounded p-6 shadow-sm space-y-4">
         <Form method="post" className="space-y-4">
+          {employee.photo && (
+            <div className="text-center">
+              <img
+                src={employee.photo}
+                alt="Employee Photo"
+                className="w-24 h-24 object-cover rounded-full mx-auto"
+              />
+            </div>
+          )}
           <div>
             <label className="block font-semibold mb-1">Full Name</label>
             <input

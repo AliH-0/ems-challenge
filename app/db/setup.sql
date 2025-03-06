@@ -26,7 +26,8 @@ CREATE TABLE employees (
     department TEXT,
     salary REAL,
     start_date TEXT,
-    end_date TEXT
+    end_date TEXT,
+    photo TEXT  
 );
 
 -- Create timesheets table

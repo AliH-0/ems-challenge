@@ -50,6 +50,13 @@ export default function EmployeesPage() {
           >
             <ul className="space-y-1">
               <li className="font-semibold">Employee #{employee.id}</li>
+              {employee.photo && (
+                <img
+                  src={employee.photo}
+                  alt="Employee Photo"
+                  className="w-20 h-20 object-cover rounded-full mb-2"
+                />
+              )}
               <ul className="ml-4 list-disc">
                 <li>Full Name: {employee.full_name}</li>
                 <li>Department: {employee.department}</li>
