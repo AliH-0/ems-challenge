@@ -10,8 +10,8 @@ export async function loader() {
 }
 
 // Helper function to ensure date-time strings include seconds
-function fixDateTime(input: string | FormDataEntryValue | null): string {
-  if (!input || typeof input !== "string") return "";
+function fixDateTime(input: string | null): string {
+  if (!input) return "";
   // If the input already includes seconds (i.e. has two colons), return as is.
   if (input.split(":").length >= 3) return input;
   // Otherwise, assume it's in "YYYY-MM-DDTHH:MM" format and append ":00"
@@ -21,8 +21,13 @@ function fixDateTime(input: string | FormDataEntryValue | null): string {
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const employee_id = formData.get("employee_id");
-  const start_time = fixDateTime(formData.get("start_time"));
-  const end_time = fixDateTime(formData.get("end_time"));
+  const start_time = fixDateTime(formData.get("start_time") as string | null);
+  const end_time = fixDateTime(formData.get("end_time") as string | null);
+
+  // Validation: Ensure start time is before end time
+  if (new Date(start_time) >= new Date(end_time)) {
+    throw new Error("Start time must be before end time.");
+  }
 
   const db = await getDB();
   await db.run(

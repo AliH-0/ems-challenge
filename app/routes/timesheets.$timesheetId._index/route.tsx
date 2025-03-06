@@ -29,8 +29,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 // Helper function to ensure date-time strings include seconds
-function fixDateTime(input: string | FormDataEntryValue | null): string {
-  if (!input || typeof input !== "string") return "";
+function fixDateTime(input: string | null): string {
+  if (!input) return "";
   if (input.split(":").length >= 3) return input;
   return input + ":00";
 }
@@ -39,12 +39,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const { timesheetId } = params;
   const formData = await request.formData();
   const employee_id = formData.get("employee_id");
-  const start_time = fixDateTime(formData.get("start_time"));
-  const end_time = fixDateTime(formData.get("end_time"));
+  const start_time = fixDateTime(formData.get("start_time") as string | null);
+  const end_time = fixDateTime(formData.get("end_time") as string | null);
 
-  // dates validation
-  if (!start_time || !end_time) {
-    throw new Error("Start/End time required");
+  // Dates validation: Ensure start time is before end time
+  if (new Date(start_time) >= new Date(end_time)) {
+    throw new Error("Start time must be before end time.");
   }
 
   const db = await getDB();
@@ -160,7 +160,7 @@ export default function TimesheetPage() {
  * Convert "YYYY-MM-DD HH:MM:SS" to "YYYY-MM-DDTHH:MM"
  * so it fits <input type="datetime-local" /> in the edit form
  */
-function convertToDateTimeLocal(dbValue: string) {
+function convertToDateTimeLocal(dbValue: string): string {
   if (!dbValue) return "";
   const [datePart, timePart] = dbValue.split(" ");
   if (!timePart) return `${datePart}T00:00`;
